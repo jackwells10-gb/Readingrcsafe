@@ -6,7 +6,7 @@ STATION_ID = "2200TH"
 FLOW_MEASURE_ID = "2200TH-flow--Mean-15_min-m3_s"
 LAT, LON = 51.458, -0.967 
 
-st.set_page_config(page_title="Reading Bridge Rowing Dashboard", layout="wide")
+st.set_page_config(page_title="Reading Rowing Club safety Dashboard", layout="wide")
 
 # --- DATA FETCHING ---
 @st.cache_data(ttl=600)
