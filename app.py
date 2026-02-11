@@ -96,7 +96,7 @@ if weather:
         uv_label = "Low"
         if uv_now >= 6: uv_label = "High"
         elif uv_now >= 3: uv_label = "Moderate"
-        sun3.metric("UV Index", f"{uv_now} ({uv_label})")
+        sun3.metric("⛱️ UV Index", f"{uv_now} ({uv_label})")
 
     st.divider()
 
