@@ -1,49 +1,47 @@
 import streamlit as st
 import requests
-import pandas as pd
 
 # --- CONFIGURATION ---
-# Replace with your local Station ID (e.g., '2200TH' for Reading)
-STATION_ID = "2200TH" 
-LAT, LON = 51.45, -0.97
+# Specifically for Reading Bridge (River Thames)
+STATION_ID = "2200TH"
+FLOW_MEASURE_ID = "2200TH-flow--Mean-15_min-m3_s"
+LAT, LON = 51.458, -0.967 # Reading Bridge coordinates
 
-st.set_page_config(page_title="Rowing Club Dashboard", layout="wide")
+st.set_page_config(page_title="Reading RC Dashboard", layout="wide")
 
-# --- DATA FETCHING ---
 @st.cache_data(ttl=600)
-def get_river_metrics(station_id):
-    url = f"https://environment.data.gov.uk/flood-monitoring/id/stations/{station_id}/measures"
+def get_reading_flow():
+    """Directly targets the flow measure for Reading Bridge."""
+    url = f"https://environment.data.gov.uk/flood-monitoring/id/measures/{FLOW_MEASURE_ID}"
     try:
-        items = requests.get(url).json().get('items', [])
-        data = {"flow": None, "level": None}
-        for item in items:
-            if item['parameter'] == 'flow':
-                data['flow'] = item['latestReading']['value']
-            if item['parameter'] == 'level':
-                data['level'] = item['latestReading']['value']
-        return data
+        res = requests.get(url).json()
+        return res['items']['latestReading']['value']
     except:
-        return {"flow": None, "level": None}
+        return None
 
 @st.cache_data(ttl=600)
-def get_weather_metrics(lat, lon):
+def get_weather(lat, lon):
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&hourly=wind_gusts_10m"
     res = requests.get(url).json()
-    return res['current_weather'], res['hourly']
+    return res
 
 # --- LOAD DATA ---
-river = get_river_metrics(STATION_ID)
-weather_now, weather_hourly = get_weather_metrics(LAT, LON)
+current_flow = get_reading_flow()
+weather_data = get_weather(LAT, LON)
+weather_now = weather_data['current_weather']
+gust_now = weather_data['hourly']['wind_gusts_10m'][0]
 
-# --- UI LAYOUT ---
-st.title("Reading Rowing Club Safety Dashboard")
+# --- UI ---
+st.title("🛶 Reading Bridge Rowing Dashboard")
 
-# TOP ROW: THE KPI TILES
+# TOP ROW
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    flow_val = f"{river['flow']} m³/s" if river['flow'] is not None else "N/A"
-    st.metric("River Flow", flow_val)
+    if current_flow:
+        st.metric("River Flow", f"{current_flow} m³/s")
+    else:
+        st.metric("River Flow", "Offline")
 
 with col2:
     st.metric("Air Temp", f"{weather_now['temperature']}°C")
@@ -52,21 +50,22 @@ with col3:
     st.metric("Wind Speed", f"{weather_now['windspeed']} km/h")
 
 with col4:
-    recent_gust = weather_hourly['wind_gusts_10m'][0]
-    st.metric("Wind Gusts", f"{recent_gust} km/h")
+    st.metric("Wind Gusts", f"{gust_now} km/h")
 
 st.divider()
 
-# SECOND ROW: SAFETY STATUS
+# --- SAFETY LOGIC (Reading RC Thresholds) ---
 st.subheader("Safety Status")
 
-# Combined Safety Logic
-# Update these thresholds (120 for flow, 20 for wind) to match your club's rules
-if (river['flow'] and river['flow'] > 100) or (weather_now['windspeed'] > 25):
-    st.error("### 🚩 RED FLAG\n**Conditions are unsafe.** High flow or dangerous wind.")
-elif (river['flow'] and river['flow'] > 75) or (weather_now['windspeed'] > 15):
-    st.warning("### 🚩 AMBER FLAG\n**Caution:** Elevated flow/wind. Recommended for senior crews or high-standard shells only.")
+if current_flow:
+    # Typical Reading thresholds: >100 Red, >75 Amber
+    if current_flow > 100:
+        st.error("### 🚩 RED FLAG: NO ROWING\nFlow is dangerously high.")
+    elif current_flow > 75:
+        st.warning("### 🚩 AMBER FLAG: SENIOR CREWS ONLY\nHigh flow. No novices or small boats.")
+    else:
+        st.success("### 🏳️ GREEN FLAG: ALL SQUADS CLEAR\nConditions are normal.")
 else:
-    st.success("### 🏳️ GREEN FLAG\n**Conditions Normal.** All squads clear to launch.")
+    st.info("Flow data currently unavailable from EA. Please check Caversham Lock levels manually.")
 
-st.info(f"Data last updated: {weather_now['time'].split('T')[1]}")
+st.caption(f"Last API Update: {weather_now['time'].replace('T', ' ')}")
