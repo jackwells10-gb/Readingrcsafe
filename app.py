@@ -32,7 +32,7 @@ weather_now = weather_data['current_weather']
 gust_now = weather_data['hourly']['wind_gusts_10m'][0]
 
 # --- UI ---
-st.title("🛶 Reading Bridge Rowing Dashboard")
+st.title("Reading Rowing Club safety Dashboard")
 
 # TOP ROW
 col1, col2, col3, col4 = st.columns(4)
