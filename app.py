@@ -36,7 +36,7 @@ river = get_river_metrics(STATION_ID)
 weather_now, weather_hourly = get_weather_metrics(LAT, LON)
 
 # --- UI LAYOUT ---
-st.title("🛶 Club Safety Dashboard")
+st.title("Reading Rowing Club Safety Dashboard")
 
 # TOP ROW: THE KPI TILES
 col1, col2, col3, col4 = st.columns(4)
@@ -62,9 +62,9 @@ st.subheader("Safety Status")
 
 # Combined Safety Logic
 # Update these thresholds (120 for flow, 20 for wind) to match your club's rules
-if (river['flow'] and river['flow'] > 120) or (weather_now['windspeed'] > 25):
-    st.error("### 🚩 RED FLAG\n**Conditions are unsafe.** High flow or dangerous wind detected.")
-elif (river['flow'] and river['flow'] > 80) or (weather_now['windspeed'] > 15):
+if (river['flow'] and river['flow'] > 100) or (weather_now['windspeed'] > 25):
+    st.error("### 🚩 RED FLAG\n**Conditions are unsafe.** High flow or dangerous wind.")
+elif (river['flow'] and river['flow'] > 75) or (weather_now['windspeed'] > 15):
     st.warning("### 🚩 AMBER FLAG\n**Caution:** Elevated flow/wind. Recommended for senior crews or high-standard shells only.")
 else:
     st.success("### 🏳️ GREEN FLAG\n**Conditions Normal.** All squads clear to launch.")
