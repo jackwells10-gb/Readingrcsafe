@@ -55,4 +55,40 @@ if weather:
         st.metric("Wind Speed", f"{weather_now['windspeed']} km/h")
         
     with col4:
-        st.metric("Wind Gusts", f)
+        st.metric("Wind Gusts", f"{gust_now} km/h")
+
+    st.divider()
+
+    # SECOND ROW: SAFETY & LIGHTING
+    left_col, right_col = st.columns(2)
+
+    with left_col:
+        st.subheader("🚩 Safety Status")
+        if current_flow:
+            if current_flow > 100:
+                st.error("RED FLAG: NO ROWING. Flow is dangerously high.")
+            elif current_flow > 75:
+                st.warning("AMBER FLAG: SENIOR CREWS ONLY. High flow, exercise caution.")
+            else:
+                st.success("GREEN FLAG: ALL SQUADS CLEAR. Conditions are normal.")
+        else:
+            st.info("Flow data unavailable. Check Caversham Lock gauges manually.")
+
+    with right_col:
+        st.subheader("☀️ Light & UV Index")
+        sun1, sun2, sun3 = st.columns(3)
+        
+        with sun1:
+            st.metric("Sunrise", sunrise_time)
+        with sun2:
+            st.metric("Sunset", sunset_time)
+        with sun3:
+            uv_label = "Low"
+            if uv_now >= 6: uv_label = "High"
+            elif uv_now >= 3: uv_label = "Moderate"
+            st.metric("UV Index", f"{uv_now} ({uv_label})")
+
+    st.divider()
+    st.caption(f"Last update: {weather_now['time'].replace('T', ' ')}")
+else:
+    st.error("Weather data currently unavailable.")
