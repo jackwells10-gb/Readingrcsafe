@@ -63,7 +63,7 @@ if weather:
     left_col, right_col = st.columns(2)
 
     with left_col:
-        st.subheader("🚩 Safety Status")
+        st.subheader("Safety Status")
         if current_flow:
             if current_flow > 100:
                 st.error("RED FLAG: NO ROWING. Flow is dangerously high.")
@@ -75,7 +75,7 @@ if weather:
             st.info("Flow data unavailable. Check Caversham Lock gauges manually.")
 
     with right_col:
-        st.subheader("☀️ Light & UV Index")
+        st.subheader("Light & UV Index")
         sun1, sun2, sun3 = st.columns(3)
         
         with sun1:
