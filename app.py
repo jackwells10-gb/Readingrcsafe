@@ -55,4 +55,4 @@ if weather:
         st.metric("Wind Speed", f"{weather_now['windspeed']} km/h")
         
     with col4:
-        st.metric("Wind Gusts", f
+        st.metric("Wind Gusts", f)
