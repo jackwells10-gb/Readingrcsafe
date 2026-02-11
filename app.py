@@ -66,18 +66,18 @@ if weather:
         flow_val = f"{current_flow} m³/s" if current_flow is not None else "Offline"
         st.metric("🌊 Current Flow", flow_val)
     with col2:
-        st.metric("Air Temp", f"{weather_now['temperature']}°C")
+        st.metric("🌡️ Air Temp", f"{weather_now['temperature']}°C")
     with col3:
-        st.metric("Wind Speed", f"{weather_now['windspeed']} km/h")
+        st.metric("🍃 Wind Speed", f"{weather_now['windspeed']} km/h")
     with col4:
-        st.metric("Wind Gusts", f"{gust_now} km/h")
+        st.metric("🌪️Wind Gusts", f"{gust_now} km/h")
 
     st.divider()
 
     # SECOND ROW: SAFETY & LIGHTING
     left_col, right_col = st.columns(2)
     with left_col:
-        st.subheader("🚩 Safety Status")
+        st.subheader("Safety Status")
         if current_flow:
             if current_flow > 100:
                 st.error("RED FLAG: NO ROWING. High flow.")
@@ -89,10 +89,10 @@ if weather:
             st.info("Flow data unavailable.")
 
     with right_col:
-        st.subheader("☀️ Light & UV Index")
+        st.subheader("Light & UV Index")
         sun1, sun2, sun3 = st.columns(3)
-        sun1.metric("Sunrise", sunrise_time)
-        sun2.metric("Sunset", sunset_time)
+        sun1.metric("🌅 Sunrise", sunrise_time)
+        sun2.metric("🌑 Sunset", sunset_time)
         uv_label = "Low"
         if uv_now >= 6: uv_label = "High"
         elif uv_now >= 3: uv_label = "Moderate"
