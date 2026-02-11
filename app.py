@@ -4,7 +4,7 @@ import pandas as pd
 
 # --- CONFIGURATION ---
 # Replace with your local Station ID (e.g., '2200TH' for Reading)
-STATION_ID = "2200 TH" 
+STATION_ID = "2200TH" 
 LAT, LON = 51.45, -0.97
 
 st.set_page_config(page_title="Rowing Club Dashboard", layout="wide")
