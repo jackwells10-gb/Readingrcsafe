@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import pandas as pd
 
 # --- CONFIGURATION ---
 # Specifically for Reading Bridge (River Thames)
@@ -32,7 +31,7 @@ def get_weather_data(lat, lon):
     except:
         return None
 
-# --- LOAD ALL DATA ---
+# --- LOAD DATA ---
 current_flow = get_reading_flow()
 weather = get_weather_data(LAT, LON)
 
@@ -45,8 +44,8 @@ if weather:
     gust_now = weather['hourly']['wind_gusts_10m'][0]
     uv_now = weather['hourly']['uv_index'][0]
     # Get today's sun times
-    sunrise = weather['daily']['sunrise'][0].split('T')[1]
-    sunset = weather['daily']['sunset'][0].split('T')[1]
+    sunrise_time = weather['daily']['sunrise'][0].split('T')[1]
+    sunset_time = weather['daily']['sunset'][0].split('T')[1]
 
     # TOP ROW: MAIN METRICS
     col1, col2, col3, col4 = st.columns(4)
@@ -74,24 +73,7 @@ if weather:
     with left_col:
         st.subheader("🚩 Safety Status")
         if current_flow:
-            # Thames Reading thresholds: >100 Red, >75 Amber
             if current_flow > 100:
                 st.error("### RED FLAG: NO ROWING\nFlow is dangerously high.")
             elif current_flow > 75:
-                st.warning("### AMBER FLAG: SENIOR CREWS ONLY\nHigh flow. Exercise extreme caution.")
-            else:
-                st.success("### GREEN FLAG: ALL SQUADS CLEAR\nConditions are normal.")
-        else:
-            st.info("Flow data unavailable. Check Caversham Lock gauges.")
-
-    with right_col:
-        st.subheader("☀️ Light & UV")
-        sun1, sun2, sun3 = st.columns(3)
-        sun1.metric("Sunrise", sunrise)
-        sun2.metric("Sunset", sunset)
-        
-        # UV Interpretation
-        uv_status = "Low"
-        if uv_now >= 3: uv_status = "Mod (Sunscreen!)"
-        if uv_now >= 6: uv_status = "High (Protect!)"
-        sun3.metric
+                st.warning("### AMBER FLAG: SENIOR CREWS ONLY
