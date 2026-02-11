@@ -51,7 +51,7 @@ weather = get_weather_data(LAT, LON)
 history_df = get_historical_flow()
 
 # --- UI LAYOUT ---
-st.title("🛶 Reading Rowing Club Safety Dashboard")
+st.title("Reading Rowing Club Safety Dashboard")
 
 if weather:
     weather_now = weather['current_weather']
@@ -64,7 +64,7 @@ if weather:
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         flow_val = f"{current_flow} m³/s" if current_flow is not None else "Offline"
-        st.metric("Current Flow", flow_val)
+        st.metric("🌊 Current Flow", flow_val)
     with col2:
         st.metric("Air Temp", f"{weather_now['temperature']}°C")
     with col3:
