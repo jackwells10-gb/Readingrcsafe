@@ -39,4 +39,34 @@ weather_now, weather_hourly = get_weather_metrics(LAT, LON)
 st.title("🛶 Club Safety Dashboard")
 
 # TOP ROW: THE KPI TILES
-col1, col2, col3,
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    flow_val = f"{river['flow']} m³/s" if river['flow'] is not None else "N/A"
+    st.metric("River Flow", flow_val)
+
+with col2:
+    st.metric("Air Temp", f"{weather_now['temperature']}°C")
+
+with col3:
+    st.metric("Wind Speed", f"{weather_now['windspeed']} km/h")
+
+with col4:
+    recent_gust = weather_hourly['wind_gusts_10m'][0]
+    st.metric("Wind Gusts", f"{recent_gust} km/h")
+
+st.divider()
+
+# SECOND ROW: SAFETY STATUS
+st.subheader("Safety Status")
+
+# Combined Safety Logic
+# Update these thresholds (120 for flow, 20 for wind) to match your club's rules
+if (river['flow'] and river['flow'] > 120) or (weather_now['windspeed'] > 25):
+    st.error("### 🚩 RED FLAG\n**Conditions are unsafe.** High flow or dangerous wind detected.")
+elif (river['flow'] and river['flow'] > 80) or (weather_now['windspeed'] > 15):
+    st.warning("### 🚩 AMBER FLAG\n**Caution:** Elevated flow/wind. Recommended for senior crews or high-standard shells only.")
+else:
+    st.success("### 🏳️ GREEN FLAG\n**Conditions Normal.** All squads clear to launch.")
+
+st.info(f"Data last updated: {weather_now['time'].split('T')[1]}")
