@@ -82,7 +82,7 @@ if weather:
             if current_flow > 100:
                 st.error("RED FLAG: NO ROWING. High flow.")
             elif current_flow > 75:
-                st.warning("AMBER FLAG: SENIOR CREWS ONLY. High flow.")
+                st.warning("AMBER FLAG: EXPERIENCED CREWS ONLY. High flow.")
             else:
                 st.success("GREEN FLAG: ALL SQUADS CLEAR.")
         else:
