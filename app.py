@@ -32,7 +32,7 @@ current_flow = get_reading_flow()
 weather = get_weather_data(LAT, LON)
 
 # --- UI LAYOUT ---
-st.title("🛶 Reading Rowing Club safety Dashboard")
+st.title(" Reading Rowing Club safety Dashboard")
 
 if weather:
     weather_now = weather['current_weather']
