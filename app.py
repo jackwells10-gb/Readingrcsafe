@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import pandas as pd
 
 # --- CONFIGURATION ---
 # Specifically for Reading Bridge (River Thames)
@@ -7,7 +8,9 @@ STATION_ID = "2200TH"
 FLOW_MEASURE_ID = "2200TH-flow--Mean-15_min-m3_s"
 LAT, LON = 51.458, -0.967 # Reading Bridge coordinates
 
-st.set_page_config(page_title="Reading RC Dashboard", layout="wide")
+st.set_page_config(page_title="Reading Bridge Rowing Dashboard", layout="wide")
+
+# --- DATA FETCHING FUNCTIONS ---
 
 @st.cache_data(ttl=600)
 def get_reading_flow():
@@ -20,80 +23,75 @@ def get_reading_flow():
         return None
 
 @st.cache_data(ttl=600)
-def get_weather_full(lat, lon):
-    # Added daily sunrise/sunset and hourly uv_index
+def get_weather_data(lat, lon):
+    """Fetches weather, UV, and sun times from Open-Meteo."""
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&hourly=wind_gusts_10m,uv_index&daily=sunrise,sunset&timezone=Europe%2FLondon"
-    res = requests.get(url).json()
-    return res
+    try:
+        res = requests.get(url).json()
+        return res
+    except:
+        return None
 
-# --- LOAD DATA ---
+# --- LOAD ALL DATA ---
 current_flow = get_reading_flow()
-weather_data = get_weather(LAT, LON)
-weather_now = weather_data['current_weather']
-gust_now = weather_data['hourly']['wind_gusts_10m'][0]
+weather = get_weather_data(LAT, LON)
 
-# --- UI ---
-st.title("Reading Rowing Club safety Dashboard")
+# --- UI LAYOUT ---
+st.title("🛶 Reading Bridge Rowing Dashboard")
 
-# TOP ROW
-col1, col2, col3, col4 = st.columns(4)
+if weather:
+    weather_now = weather['current_weather']
+    # Get current hour's gust and UV
+    gust_now = weather['hourly']['wind_gusts_10m'][0]
+    uv_now = weather['hourly']['uv_index'][0]
+    # Get today's sun times
+    sunrise = weather['daily']['sunrise'][0].split('T')[1]
+    sunset = weather['daily']['sunset'][0].split('T')[1]
 
-with col1:
-    if current_flow:
-        st.metric("River Flow", f"{current_flow} m³/s")
-    else:
-        st.metric("River Flow", "Offline")
+    # TOP ROW: MAIN METRICS
+    col1, col2, col3, col4 = st.columns(4)
 
-with col2:
-    st.metric("Air Temp", f"{weather_now['temperature']}°C")
+    with col1:
+        if current_flow:
+            st.metric("River Flow", f"{current_flow} m³/s")
+        else:
+            st.metric("River Flow", "Offline")
 
-with col3:
-    st.metric("Wind Speed", f"{weather_now['windspeed']} km/h")
+    with col2:
+        st.metric("Air Temp", f"{weather_now['temperature']}°C")
 
-with col4:
-    st.metric("Wind Gusts", f"{gust_now} km/h")
+    with col3:
+        st.metric("Wind Speed", f"{weather_now['windspeed']} km/h")
 
-st.divider()
+    with col4:
+        st.metric("Wind Gusts", f"{gust_now} km/h")
 
-# --- SUNLIGHT & UV SECTION ---
-st.subheader("☀️ Light & UV Status")
+    st.divider()
 
-# Extract data from the response
-weather_full = get_weather_full(LAT, LON)
-sunrise = weather_full['daily']['sunrise'][0].split('T')[1]
-sunset = weather_full['daily']['sunset'][0].split('T')[1]
-current_uv = weather_full['hourly']['uv_index'][0] # Current hour UV
+    # SECOND ROW: SAFETY & LIGHTING
+    left_col, right_col = st.columns(2)
 
-col_sun1, col_sun2, col_sun3 = st.columns(3)
+    with left_col:
+        st.subheader("🚩 Safety Status")
+        if current_flow:
+            # Thames Reading thresholds: >100 Red, >75 Amber
+            if current_flow > 100:
+                st.error("### RED FLAG: NO ROWING\nFlow is dangerously high.")
+            elif current_flow > 75:
+                st.warning("### AMBER FLAG: SENIOR CREWS ONLY\nHigh flow. Exercise extreme caution.")
+            else:
+                st.success("### GREEN FLAG: ALL SQUADS CLEAR\nConditions are normal.")
+        else:
+            st.info("Flow data unavailable. Check Caversham Lock gauges.")
 
-with col_sun1:
-    st.metric("Sunrise (Lights Off)", sunrise)
-    st.caption("Standard lighting-up rules apply.")
-
-with col_sun2:
-    st.metric("Sunset (Lights On)", sunset)
-    st.caption("Ensure kits have reflective gear.")
-
-with col_sun3:
-    # UV Index interpretation
-    uv_status = "Low"
-    if current_uv >= 3: uv_status = "Moderate (Wear Sunscreen)"
-    if current_uv >= 6: uv_status = "High (Protection Required)"
-    
-    st.metric("UV Index", f"{current_uv} ({uv_status})")
-
-# --- SAFETY LOGIC (Reading RC Thresholds) ---
-st.subheader("Safety Status")
-
-if current_flow:
-    # Typical Reading thresholds: >100 Red, >75 Amber
-    if current_flow > 100:
-        st.error("### 🚩 RED FLAG: NO ROWING\nFlow is dangerously high.")
-    elif current_flow > 75:
-        st.warning("### 🚩 AMBER FLAG: SENIOR CREWS ONLY\nHigh flow. No novices or small boats.")
-    else:
-        st.success("### 🏳️ GREEN FLAG: ALL SQUADS CLEAR\nConditions are normal.")
-else:
-    st.info("Flow data currently unavailable from EA. Please check Caversham Lock levels manually.")
-
-st.caption(f"Last API Update: {weather_now['time'].replace('T', ' ')}")
+    with right_col:
+        st.subheader("☀️ Light & UV")
+        sun1, sun2, sun3 = st.columns(3)
+        sun1.metric("Sunrise", sunrise)
+        sun2.metric("Sunset", sunset)
+        
+        # UV Interpretation
+        uv_status = "Low"
+        if uv_now >= 3: uv_status = "Mod (Sunscreen!)"
+        if uv_now >= 6: uv_status = "High (Protect!)"
+        sun3.metric
