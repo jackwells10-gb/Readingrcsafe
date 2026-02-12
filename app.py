@@ -69,9 +69,12 @@ flag_color = "#808080" # Default Gray
 flag_text = "DATA OFFLINE"
 
 if current_flow is not None:
-    if current_flow > 100:
+    if current_flow > 120:
+        flag_color = "#000000" # black
+        flag_text = "⚫ BLACK FLAG: NO ROWING"
+    elif current_flow > 100:
         flag_color = "#d32f2f" # Red
-        flag_text = "🔴 RED FLAG: NO ROWING"
+        flag_text = "🔴 RED FLAG: DANGER, SIGNED OFF, EXPERIENCED CREWS ONLY"    
     elif current_flow > 75:
         flag_color = "#f57c00" # Amber
         flag_text = "🟠 AMBER FLAG: EXPERIENCED CREWS ONLY"
