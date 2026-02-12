@@ -71,16 +71,16 @@ flag_text = "DATA OFFLINE"
 if current_flow is not None:
     if current_flow > 120:
         flag_color = "#000000" # black
-        flag_text = "😢 BLACK FLAG: NO ROWING"
+        flag_text = "😢 BLACK FLAG: NO ROWING 😢"
     elif current_flow > 100:
         flag_color = "#d32f2f" # Red
-        flag_text = "🔴 RED FLAG: DANGER, SIGNED OFF, EXPERIENCED CREWS ONLY"    
+        flag_text = "🔴 RED FLAG: DANGER, EXPERIENCED CREWS ONLY 🔴"    
     elif current_flow > 75:
         flag_color = "#f57c00" # Amber
-        flag_text = "🟠 AMBER FLAG: EXPERIENCED CREWS ONLY"
+        flag_text = "🟠 AMBER FLAG: EXPERIENCED CREWS ONLY 🟠"
     else:
         flag_color = "#388e3c" # Green
-        flag_text = "🟢 GREEN FLAG: ALL SQUADS CLEAR"
+        flag_text = "🟢 GREEN FLAG: ALL SQUADS CLEAR 🟢"
 
 # --- UI LAYOUT ---
 # Hero Safety Banner
