@@ -1,64 +1,22 @@
-import streamlit as st
-import requests
-import pandas as pd
-import plotly.express as px
-from datetime import datetime, timedelta
-
-# --- CONFIGURATION ---
-STATION_ID = "2200TH"
-FLOW_MEASURE_ID = "2200TH-flow--Mean-15_min-m3_s"
-LAT, LON = 51.458, -0.967 
-
-st.set_page_config(page_title="Reading Bridge Rowing Dashboard", layout="wide")
-
-# --- DATA FETCHING ---
-
-@st.cache_data(ttl=3600) # Cache historical data for 1 hour
-def get_historical_flow():
-    """Fetches flow data for the last 30 days."""
-    thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-    url = f"https://environment.data.gov.uk/flood-monitoring/id/measures/{FLOW_MEASURE_ID}/readings?since={thirty_days_ago}&_sorted"
-    try:
-        res = requests.get(url).json()
-        df = pd.DataFrame(res['items'])
-        df['dateTime'] = pd.to_datetime(df['dateTime'])
-        df = df.rename(columns={'value': 'Flow (m³/s)'})
-        return df[['dateTime', 'Flow (m³/s)']]
-    except:
-        return pd.DataFrame()
-
-@st.cache_data(ttl=600)
-def get_reading_flow():
-    url = f"https://environment.data.gov.uk/flood-monitoring/id/measures/{FLOW_MEASURE_ID}"
-    try:
-        res = requests.get(url).json()
-        return res['items']['latestReading']['value']
-    except:
-        return None
-
+# --- DATA FETCHING (Updated for m/s) ---
 @st.cache_data(ttl=600)
 def get_weather_data(lat, lon):
-    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&hourly=wind_gusts_10m,uv_index&daily=sunrise,sunset&timezone=Europe%2FLondon"
+    # Added windspeed_unit=ms to the API call
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&hourly=wind_gusts_10m,uv_index&daily=sunrise,sunset&windspeed_unit=ms&timezone=Europe%2FLondon"
     try:
-        res = requests.get(url).json()
+        res = requests.get(url, timeout=10).json()
         return res
-    except:
+    except Exception:
         return None
 
-# --- LOAD DATA ---
-current_flow = get_reading_flow()
-weather = get_weather_data(LAT, LON)
-history_df = get_historical_flow()
-
-# --- UI LAYOUT ---
-st.title("Reading Rowing Club Safety Dashboard")
+# ... (rest of your logic) ...
 
 if weather:
+    current_hour_idx = datetime.now().hour
     weather_now = weather['current_weather']
-    gust_now = weather['hourly']['wind_gusts_10m'][0]
-    uv_now = weather['hourly']['uv_index'][0]
-    sunrise_time = weather['daily']['sunrise'][0].split('T')[1]
-    sunset_time = weather['daily']['sunset'][0].split('T')[1]
+    # Values are now in m/s thanks to the API parameter
+    wind_now = weather_now['windspeed']
+    gust_now = weather['hourly']['wind_gusts_10m'][current_hour_idx]
 
     # TOP ROW: MAIN METRICS
     col1, col2, col3, col4 = st.columns(4)
@@ -68,48 +26,6 @@ if weather:
     with col2:
         st.metric("🌡️ Air Temp", f"{weather_now['temperature']}°C")
     with col3:
-        st.metric("🍃 Wind Speed", f"{weather_now['windspeed']} km/h")
+        st.metric("🍃 Wind Speed", f"{wind_now} m/s")
     with col4:
-        st.metric("🌪️Wind Gusts", f"{gust_now} km/h")
-
-    st.divider()
-
-    # SECOND ROW: SAFETY & LIGHTING
-    left_col, right_col = st.columns(2)
-    with left_col:
-        st.subheader("Safety Status")
-        if current_flow:
-            if current_flow > 100:
-                st.error("RED FLAG: NO ROWING. High flow.")
-            elif current_flow > 75:
-                st.warning("AMBER FLAG: EXPERIENCED CREWS ONLY. High flow.")
-            else:
-                st.success("GREEN FLAG: ALL SQUADS CLEAR.")
-        else:
-            st.info("Flow data unavailable.")
-
-    with right_col:
-        st.subheader("Light & UV Index")
-        sun1, sun2, sun3 = st.columns(3)
-        sun1.metric("🌅 Sunrise", sunrise_time)
-        sun2.metric("🌑 Sunset", sunset_time)
-        uv_label = "Low"
-        if uv_now >= 6: uv_label = "High"
-        elif uv_now >= 3: uv_label = "Moderate"
-        sun3.metric("⛱️ UV Index", f"{uv_now} ({uv_label})")
-
-    st.divider()
-
-    # THIRD ROW: HISTORICAL GRAPH
-    st.subheader("📊 River Flow: Last 30 Days")
-    if not history_df.empty:
-        fig = px.line(history_df, x='dateTime', y='Flow (m³/s)', 
-                      template="plotly_white",
-                      labels={'dateTime': 'Date', 'Flow (m³/s)': 'Flow (m³/s)'})
-        # Adding a red threshold line at 100 m3/s
-        fig.add_hline(y=100, line_dash="dash", line_color="red", annotation_text="Red Flag Threshold")
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.write("Could not load historical data.")
-
-    st.caption(f"Last update: {weather_now['time'].replace('T', ' ')}")
+        st.metric("🌪️ Wind Gusts", f"{gust_now} m/s")
