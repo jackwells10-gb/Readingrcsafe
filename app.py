@@ -153,7 +153,7 @@ if weather:
     else:
         st.info("Historical data unavailable. Check Environment Agency status.")
 
-    st.caption(f"Last API Sync: {datetime.now().strftime('%H:%M:%S')} | Data source: Environment Agency & Open-Meteo")
+    st.caption(f"Last API Sync: {datetime.now().strftime('%H:%M:%S')} | Data source: Environment Agency & Open-Meteo | Developed by Jack W 😽")
 
 else:
     st.error("Unable to connect to weather services. Please check manual club flags.")
