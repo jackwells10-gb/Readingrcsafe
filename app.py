@@ -87,7 +87,7 @@ if current_flow is not None:
 st.markdown(f"""
     <div style="background-color:{flag_color}; padding:25px; border-radius:15px; text-align:center; margin-bottom:20px;">
         <h1 style="color:white; margin:0; font-family:sans-serif;">{flag_text}</h1>
-        <p style="color:white; opacity:0.9; margin:5px 0 0 0;">Reading Rowing Club Safety Dashboard</p>
+        <p style="color:white; opacity:0.9; margin:5px 0 0 0;">Reading Rowing Club Safety Dashboard TEST</p>
     </div>
     """, unsafe_allow_html=True)
 
