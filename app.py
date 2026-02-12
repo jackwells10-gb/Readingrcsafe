@@ -29,18 +29,28 @@ def get_historical_flow():
 
 @st.cache_data(ttl=600)
 def get_reading_flow():
-    """Fetches the most recent river flow reading."""
+    """Fetches the most recent river flow reading with robust error handling."""
     url = f"https://environment.data.gov.uk/flood-monitoring/id/measures/{FLOW_MEASURE_ID}"
     try:
         res = requests.get(url, timeout=10).json()
-        return float(res['items']['latestReading']['value'])
-    except Exception:
-        return None
+        items = res.get('items', {})
+        
+        # The API sometimes returns a list of one item, sometimes just the item
+        if isinstance(items, list) and len(items) > 0:
+            latest = items[0].get('latestReading', {})
+        else:
+            latest = items.get('latestReading', {})
+            
+        value = latest.get('value')
+        timestamp = latest.get('dateTime')
+        
+        return (float(value), timestamp) if value is not None else (None, None)
+    except Exception as e:
+        return None, None
 
 @st.cache_data(ttl=600)
 def get_weather_data(lat, lon):
     """Fetches weather data with wind units set to m/s."""
-    # windspeed_unit=ms converts km/h to m/s automatically
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&hourly=wind_gusts_10m,uv_index&daily=sunrise,sunset&windspeed_unit=ms&timezone=Europe%2FLondon"
     try:
         res = requests.get(url, timeout=10).json()
@@ -49,11 +59,12 @@ def get_weather_data(lat, lon):
         return None
 
 # --- LOAD DATA ---
-current_flow = get_reading_flow()
+current_flow, flow_time = get_reading_flow()
 weather = get_weather_data(LAT, LON)
 history_df = get_historical_flow()
 
 # --- LOGIC: SAFETY FLAG ---
+# We use the flow thresholds (75 and 100) to set the banner color
 flag_color = "#808080" # Default Gray
 flag_text = "DATA OFFLINE"
 
@@ -91,10 +102,14 @@ if weather:
     with m1:
         flow_display = f"{current_flow} m³/s" if current_flow is not None else "Offline"
         st.metric("🌊 River Flow", flow_display)
+        if flow_time:
+            # Clean up timestamp for display
+            clean_time = flow_time.replace('T', ' ').replace('Z', '')[:16]
+            st.caption(f"Measured: {clean_time}")
+            
     with m2:
         st.metric("🌡️ Air Temp", f"{weather_now['temperature']}°C")
     with m3:
-        # Show wind speed and direction (degrees)
         st.metric("🍃 Wind Speed", f"{weather_now['windspeed']} m/s", f"{weather_now['winddirection']}°")
     with m4:
         st.metric("🌪️ Max Gusts", f"{gust_now} m/s")
@@ -135,8 +150,7 @@ if weather:
     else:
         st.info("Historical data unavailable. Check Environment Agency status.")
 
-    # FOOTER
-    st.caption(f"Last update from station: {weather_now['time'].replace('T', ' ')} | All wind speeds in m/s")
+    st.caption(f"Last API Sync: {datetime.now().strftime('%H:%M:%S')} | Data source: Environment Agency & Open-Meteo")
 
 else:
     st.error("Unable to connect to weather services. Please check manual club flags.")
