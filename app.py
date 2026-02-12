@@ -13,7 +13,7 @@ st.set_page_config(page_title="Reading Bridge Rowing Dashboard", layout="wide")
 
 # --- DATA FETCHING ---
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=21600)
 def get_historical_flow():
     """Fetches flow data for the last 30 days."""
     thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
@@ -64,7 +64,7 @@ weather = get_weather_data(LAT, LON)
 history_df = get_historical_flow()
 
 # --- LOGIC: SAFETY FLAG ---
-# We use the flow thresholds (75 and 100) to set the banner color
+# We use the flow thresholds (75 and 120) to set the banner color
 flag_color = "#808080" # Default Gray
 flag_text = "DATA OFFLINE"
 
